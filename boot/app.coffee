@@ -1,6 +1,5 @@
 require('dotenv').load()
 express = require 'express'
-bodyParser = require 'body-parser'
 app = express()
 
 app.use (req, res, next) ->
@@ -8,7 +7,7 @@ app.use (req, res, next) ->
     res.sendStatus 401
   else
     next()
-    
+
 app.use '/', require '../app/router'
 
 server = app.listen process.env.PORT, ->
