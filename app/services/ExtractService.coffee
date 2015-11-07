@@ -4,6 +4,8 @@ unfluff = require 'unfluff'
 
 module.exports = new class ExtractService
 
+  imageTypes: ['jpg', 'jpeg', 'gif', 'png']
+
   transformUrl: (url) ->
 
     url = URI.parse decodeURIComponent url
@@ -15,7 +17,7 @@ module.exports = new class ExtractService
 
   fetchUrl: (url, callback) ->
 
-    request url, (err, res, body) ->
+    request url, (err, res, body) =>
 
       if err
         return callback { error: { message: 'Badly formatted URL.'} }, 400, null
@@ -24,4 +26,17 @@ module.exports = new class ExtractService
         err = error: { message: 'There was a problem fetching the URL.' }
         return callback err, res.statusCode, null
 
-      callback err, res.statusCode, unfluff body
+      @parseResponse url, res, body, callback
+
+  parseResponse: (url, res, body, callback) ->
+
+    contentType = res.headers['content-type'].split '/'
+    isImage = @imageTypes.some (imageType) ->
+      contentType[1] is imageType
+
+    data = unfluff body
+
+    if isImage
+      data.image = url
+
+    callback null, res.statusCode, data
