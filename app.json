@@ -1,0 +1,6 @@
+{
+  "name": "Extractor",
+  "description": "A self-hosted web service that extracts content from web pages",
+  "repository": "https://github.com/claflamme/extractor",
+  "keywords": ["node", "express", "html", "extract"]
+}
