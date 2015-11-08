@@ -6,6 +6,8 @@ All you need to do is send it a URL and a secret code, and it will return the ma
 
 The bulk of the work is done by the very cool [node-unfluff](https://github.com/ageitgey/node-unfluff) package.
 
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=http://github.com/claflamme/extractor/tree/master)
+
 ## Installation
 
 Clone or download this repository and put it on a server somewhere - you'll need nodejs installed.
