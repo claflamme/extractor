@@ -2,7 +2,7 @@ URI = require 'urijs'
 request = require 'request'
 unfluff = require 'unfluff'
 cheerio = require 'cheerio'
-OEmbedService = require './OEmbedService'
+OEmbedExtractor = require './OEmbedExtractor'
 
 module.exports = class Extractor
 
@@ -45,31 +45,27 @@ module.exports = class Extractor
 
   parseResponse: (res, body, callback) ->
 
+    output =
+      type: 'link'
+      version: 1.0
+
     contentType = res.headers['content-type'].split '/'
     isImage = @imageTypes.some (imageType) ->
       contentType[1] is imageType
 
-    data = unfluff body
-
     if isImage
-      data.image = @url
-
-    @fetchOEmbedData res, body, data, callback
-
-  fetchOEmbedData: (res, body, data, callback) ->
-
-    oEmbedUrl = null
-    $ = cheerio.load body
-
-    $('link').each (i, link) ->
-      attributes = $(link).attr()
-      if attributes.type is 'application/json+oembed'
-        oEmbedUrl = attributes.href
-        return false
-
-    if oEmbedUrl
-      request oEmbedUrl, (err, res, body) ->
-        data.oembed = JSON.parse body
-        callback null, 200, data
+      output.type = 'photo'
+      output.url = @url
+      callback null, 200, output
     else
-      callback null, 200, data
+      oEmbedExtractor = new OEmbedExtractor body
+      oEmbedExtractor.extract (oEmbedData) ->
+        if oEmbedData
+          output = oEmbedData
+        else
+          data = unfluff.lazy body
+          output.title = data.title()
+          output.description = data.description()
+          output.thumbnail_url = data.image()
+          output.provider_url = data.canonicalLink()
+        callback null, 200, output
