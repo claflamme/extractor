@@ -1,4 +1,4 @@
-ExtractService = require '../services/ExtractService'
+Extractor = require '../services/Extractor'
 
 module.exports = new class ExtractController
 
@@ -8,9 +8,9 @@ module.exports = new class ExtractController
       message = 'You must include a `url` parameter in the query string.'
       return res.status(400).json error: { message: message }
 
-    url = ExtractService.transformUrl req.query.url
+    extractor = new Extractor req.query.url
 
-    ExtractService.fetchUrl url, (err, statusCode, data) ->
+    extractor.fetch (err, statusCode, data) ->
       if err
         res.status(statusCode).json err
       else

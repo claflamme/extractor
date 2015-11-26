@@ -2,14 +2,25 @@ URI = require 'urijs'
 request = require 'request'
 unfluff = require 'unfluff'
 cheerio = require 'cheerio'
+OEmbedService = require './OEmbedService'
 
-module.exports = new class ExtractService
+module.exports = class Extractor
+
+  constructor: (url) ->
+
+    @setUrl url
+
+  url: null
 
   imageTypes: ['jpg', 'jpeg', 'gif', 'png']
 
   errors:
-    badUrl: message: 'Badly formatted URL.'
+    badUrl: message: 'Badly formatted URL. Make sure it is correctly encoded.'
     server: message: 'There was a problem fetching the URL.'
+
+  setUrl: (url) ->
+
+    @url = @transformUrl url
 
   transformUrl: (url) ->
 
@@ -20,9 +31,9 @@ module.exports = new class ExtractService
 
     URI.build url
 
-  fetchUrl: (url, callback) ->
+  fetch: (callback) ->
 
-    request url, (err, res, body) =>
+    request @url, (err, res, body) =>
 
       if err
         return callback { error: @errors.badUrl }, 400, null
@@ -30,9 +41,9 @@ module.exports = new class ExtractService
       if res.statusCode isnt 200
         return callback { error: @errors.server }, res.statusCode, null
 
-      @parseResponse url, res, body, callback
+      @parseResponse res, body, callback
 
-  parseResponse: (url, res, body, callback) ->
+  parseResponse: (res, body, callback) ->
 
     contentType = res.headers['content-type'].split '/'
     isImage = @imageTypes.some (imageType) ->
@@ -41,7 +52,7 @@ module.exports = new class ExtractService
     data = unfluff body
 
     if isImage
-      data.image = url
+      data.image = @url
 
     @fetchOEmbedData res, body, data, callback
 
